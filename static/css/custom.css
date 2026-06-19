@@ -1,0 +1,72 @@
+/* custom.css — Override dan tambahan style di luar Tailwind */
+
+/* Smooth transitions */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Pastikan checkbox Alpine.js tidak bergeser saat di-toggle */
+input[type="checkbox"] {
+  flex-shrink: 0;
+}
+
+/* Progress bar animasi halus */
+.progress-bar {
+  transition: width 0.6s ease;
+}
+
+/* Custom scrollbar untuk area gejala */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #fbbf24;
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b;
+}
+
+/* Input focus glow effect */
+input:focus,
+textarea:focus {
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+}
+
+/* Card hover effect */
+.hover\:shadow-md {
+  transition: all 0.3s ease;
+}
+
+/* Button press effect */
+button:active,
+a:active {
+  transform: scale(0.98);
+}
+
+/* Smooth page transitions */
+body {
+  transition: background-color 0.3s ease;
+}
+
+/* Badge pulse animation */
+@keyframes pulse-yellow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-yellow {
+  animation: pulse-yellow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
