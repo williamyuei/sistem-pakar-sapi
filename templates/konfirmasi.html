@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Konfirmasi Gejala{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-3 mb-8">
+  <div class="inline-flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-xl">
+    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+  </div>
+  <h2 class="text-3xl font-bold text-gray-900">Konfirmasi Keyakinan Gejala</h2>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+    <div class="flex items-center gap-2 mb-6">
+      <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+      <h3 class="font-bold text-gray-900 text-lg">Data Pemilik</h3>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Pemilik</label>
+        <div class="w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-700">
+          {{ nama_pemilik }}
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">Nama / ID Sapi</label>
+        <div class="w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-700">
+          {{ nama_sapi|default:"—" }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+    <div class="flex items-center gap-2 mb-2">
+      <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h3 class="font-bold text-gray-900 text-lg">Tingkat Keyakinan Gejala</h3>
+    </div>
+    <p class="text-sm text-gray-500 mb-6 ml-7">Tentukan seberapa yakin Anda bahwa sapi mengalami masing-masing gejala berikut:</p>
+
+    <div class="space-y-3">
+      {% for g in gejala_list %}
+        <div class="flex items-center justify-between border border-gray-200 rounded-xl p-4 hover:border-yellow-300 transition">
+          <div class="flex items-start gap-3">
+            <span class="inline-block font-mono text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded mt-0.5">{{ g.kode }}</span>
+            <span class="text-sm text-gray-700">{{ g.nama }}</span>
+          </div>
+          <select name="cf_user_{{ g.id }}"
+                  class="border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400">
+            <option value="0.8">Yakin</option>
+            <option value="0.6" selected>Cukup Yakin</option>
+            <option value="0.4">Sedikit Yakin</option>
+            <option value="0.2">Tidak Tahu</option>
+            <option value="0.0">Tidak</option>
+          </select>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="flex gap-4">
+    <button type="submit"
+            class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-8 py-3.5 rounded-xl transition shadow-lg shadow-yellow-200 hover:shadow-xl flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      Proses Diagnosa
+    </button>
+    <a href="{% url 'diagnosa' %}" class="border-2 border-gray-300 text-gray-700 font-semibold px-8 py-3.5 rounded-xl hover:bg-gray-50 transition flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      Kembali
+    </a>
+  </div>
+</form>
+{% endblock %}

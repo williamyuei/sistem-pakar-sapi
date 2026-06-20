@@ -5,32 +5,32 @@ Referensi: Shortliffe & Buchanan (1975)
 
 Rumus:
   1. CF per gejala  : CF_gejala = CF_pakar × CF_user
-                      (CF_user = 1.0 karena user hanya memilih gejala yang pasti dialami)
+                      (CF_user diberikan oleh user dari pilihan keyakinan)
 
-  2. Kombinasi CF   : CF_combine(CF1, CF2) = CF1 + CF2 × (1 − CF1)
+  2. Kombinasi CF   : CF_combine(CF1, CF2) = CF1 + CF2 − (CF1 × CF2)
                       Diterapkan iteratif untuk setiap gejala per penyakit.
 """
 
 from core.models import Rule
 
 
-def hitung_cf(gejala_ids: list[int]) -> list[dict]:
+def hitung_cf(gejala_cf: dict[int, float]) -> list[dict]:
     """
     Menghitung nilai CF untuk setiap penyakit berdasarkan gejala yang dipilih.
 
     Args:
-        gejala_ids: List ID gejala yang dipilih pengguna.
+        gejala_cf: Dict mapping ID gejala → nilai CF_user (0.0 – 1.0).
 
     Returns:
         List dict hasil CF, diurutkan dari nilai tertinggi. Contoh:
         [{"penyakit": "Anthrax", "kode": "P01", "cf": 0.99, "persentase": 99.0, ...}]
     """
-    if not gejala_ids:
+    if not gejala_cf:
         return []
 
     # Ambil semua rule yang relevan sekaligus (1 query)
     rules = Rule.objects.filter(
-        gejala_id__in=gejala_ids
+        gejala_id__in=gejala_cf.keys()
     ).select_related('penyakit', 'gejala')
 
     # Akumulasi CF per penyakit
@@ -38,7 +38,8 @@ def hitung_cf(gejala_ids: list[int]) -> list[dict]:
 
     for rule in rules:
         pid = rule.penyakit.id
-        cf_baru = rule.cf_pakar * 1.0  # CF_user = 1.0
+        cf_user = gejala_cf.get(rule.gejala_id, 0)
+        cf_baru = rule.cf_pakar * cf_user
 
         if pid not in cf_map:
             cf_map[pid] = {
@@ -49,9 +50,9 @@ def hitung_cf(gejala_ids: list[int]) -> list[dict]:
                 "cf": cf_baru,
             }
         else:
-            # Rumus kombinasi CF: CF1 + CF2 × (1 − CF1)
+            # Rumus kombinasi CF: CF1 + CF2 − (CF1 × CF2)
             cf_lama = cf_map[pid]["cf"]
-            cf_map[pid]["cf"] = cf_lama + cf_baru * (1 - cf_lama)
+            cf_map[pid]["cf"] = cf_lama + cf_baru - (cf_lama * cf_baru)
 
     # Susun hasil akhir
     hasil = [

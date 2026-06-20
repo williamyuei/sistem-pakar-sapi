@@ -20,7 +20,7 @@ class GejalaListAPI(APIView):
 class DiagnosaAPI(APIView):
     """
     POST /api/diagnosa/
-    Body : {"gejala_ids": [1, 3, 5]}
+    Body : {"gejala": [{"id": 1, "cf_user": 0.8}, {"id": 3, "cf_user": 0.6}, ...]}
     Return: list hasil CF diurutkan dari tertinggi.
     """
     def post(self, request):
@@ -28,7 +28,8 @@ class DiagnosaAPI(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        hasil = hitung_cf(serializer.validated_data['gejala_ids'])
+        gejala_cf = {item['id']: item['cf_user'] for item in serializer.validated_data['gejala']}
+        hasil = hitung_cf(gejala_cf)
         if not hasil:
             return Response(
                 {"detail": "Tidak ada penyakit yang cocok."},

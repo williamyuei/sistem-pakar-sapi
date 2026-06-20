@@ -7,6 +7,14 @@ from django.contrib.auth.models import User
 from .models import Gejala, NilaiCF
 from .cf_engine import hitung_cf
 
+CF_USER_MAP = {
+    0.0: ('Tidak', 'Tidak'),
+    0.2: ('Tidak Tahu', 'Tidak Tahu'),
+    0.4: ('Sedikit Yakin', 'Sedikit Yakin'),
+    0.6: ('Cukup Yakin', 'Cukup Yakin'),
+    0.8: ('Yakin', 'Yakin'),
+}
+
 
 def home(request):
     return render(request, 'home.html')
@@ -91,7 +99,7 @@ def logout_view(request):
 def diagnosa(request):
     """
     GET : Tampilkan form pilih gejala.
-    POST: Hitung CF, simpan riwayat, redirect ke hasil.
+    POST: Validasi → simpan ke session → redirect ke halaman konfirmasi.
     """
     if request.method == 'POST':
         nama_pemilik = request.POST.get('nama_pemilik', '').strip()
@@ -106,25 +114,72 @@ def diagnosa(request):
             messages.error(request, "Pilih minimal satu gejala.")
             return redirect('diagnosa')
 
-        gejala_ids = [int(i) for i in gejala_ids]
-        hasil = hitung_cf(gejala_ids)
+        request.session['diagnosa_nama_pemilik'] = nama_pemilik
+        request.session['diagnosa_nama_sapi'] = nama_sapi
+        request.session['diagnosa_gejala_ids'] = [int(i) for i in gejala_ids]
 
+        return redirect('konfirmasi')
+
+    gejala_list = Gejala.objects.all()
+    return render(request, 'diagnosa.html', {'gejala_list': gejala_list})
+
+
+@login_required(login_url='login')
+def konfirmasi(request):
+    """
+    GET : Tampilkan dropdown keyakinan untuk tiap gejala yang dipilih.
+    POST: Baca CF_user, hitung CF, simpan riwayat, redirect ke hasil.
+    """
+    gejala_ids = request.session.get('diagnosa_gejala_ids')
+    nama_pemilik = request.session.get('diagnosa_nama_pemilik')
+
+    if not gejala_ids or not nama_pemilik:
+        messages.warning(request, "Silakan pilih gejala terlebih dahulu.")
+        return redirect('diagnosa')
+
+    if request.method == 'POST':
+        nama_sapi = request.session.get('diagnosa_nama_sapi', '')
+
+        gejala_cf = {}
+        for gid in gejala_ids:
+            cf_user = float(request.POST.get(f'cf_user_{gid}', 0.6))
+            gejala_cf[gid] = cf_user
+
+        hasil = hitung_cf(gejala_cf)
         if not hasil:
             messages.warning(request, "Tidak ada penyakit yang cocok dengan gejala yang dipilih.")
             return redirect('diagnosa')
 
         gejala_qs = Gejala.objects.filter(id__in=gejala_ids)
+        gejala_dipilih = []
+        for g in gejala_qs.values('id', 'kode', 'nama'):
+            gid = g['id']
+            gejala_dipilih.append({
+                **g,
+                'cf_user': gejala_cf[gid],
+                'cf_user_label': CF_USER_MAP.get(gejala_cf[gid], ('Cukup Yakin', 'Cukup Yakin'))[0],
+            })
+
         riwayat = NilaiCF.objects.create(
             user=request.user,
             nama_pemilik=nama_pemilik,
             nama_sapi=nama_sapi,
-            gejala_dipilih=list(gejala_qs.values('id', 'kode', 'nama')),
+            gejala_dipilih=gejala_dipilih,
             hasil_cf=hasil,
         )
+
+        del request.session['diagnosa_gejala_ids']
+        del request.session['diagnosa_nama_pemilik']
+        del request.session['diagnosa_nama_sapi']
+
         return redirect('hasil', pk=riwayat.pk)
 
-    gejala_list = Gejala.objects.all()
-    return render(request, 'diagnosa.html', {'gejala_list': gejala_list})
+    gejala_list = Gejala.objects.filter(id__in=gejala_ids)
+    return render(request, 'konfirmasi.html', {
+        'gejala_list': gejala_list,
+        'nama_pemilik': nama_pemilik,
+        'nama_sapi': request.session.get('diagnosa_nama_sapi', ''),
+    })
 
 
 @login_required(login_url='login')

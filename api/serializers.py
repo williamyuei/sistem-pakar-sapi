@@ -8,13 +8,21 @@ class GejalaSerializer(serializers.ModelSerializer):
         fields = ['id', 'kode', 'nama']
 
 
+class GejalaCFSerializer(serializers.Serializer):
+    id = serializers.IntegerField(min_value=1)
+    cf_user = serializers.FloatField()
+
+    def validate_cf_user(self, value):
+        if value not in (0.0, 0.2, 0.4, 0.6, 0.8):
+            raise serializers.ValidationError(
+                "cf_user harus 0.8 (Yakin), 0.6 (Cukup Yakin), 0.4 (Sedikit Yakin), 0.2 (Tidak Tahu), atau 0.0 (Tidak)."
+            )
+        return value
+
+
 class DiagnosaInputSerializer(serializers.Serializer):
     """Validasi input POST /api/diagnosa/"""
-    gejala_ids = serializers.ListField(
-        child=serializers.IntegerField(min_value=1),
-        min_length=1,
-        error_messages={'min_length': 'Pilih minimal satu gejala.'}
-    )
+    gejala = GejalaCFSerializer(many=True, min_length=1)
 
 
 class HasilCFSerializer(serializers.Serializer):
