@@ -21,17 +21,12 @@ Sistem pakar berbasis web untuk mendiagnosis penyakit pada sapi menggunakan meto
 
 | Kode | Penyakit |
 |------|----------|
-| P01 | Anthrax |
-| P02 | Penyakit Mulut dan Kuku (PMK) |
-| P03 | Brucellosis |
-| P04 | Mastitis |
-| P05 | Bloat (Kembung Rumen) |
-| P06 | Jembrana Disease |
-| P07 | Septikemia Hemoragik (Baliziekte/HS) |
-| P08 | Cacingan (Toxocara vitulorum) |
-| P09 | Corpus Luteum Persisten |
-| P10 | Surra (Trypanosomiasis) |
-| P11 | Bovine Ephemeral Fever (Demam 3 Hari) |
+| P01 | Jembrana Disease |
+| P02 | Baliziekte |
+| P03 | Cacingan (Toxocara vitulorum) |
+| P04 | Corpus Luteum Persisten |
+| P05 | Surra (Trypanosomiasis) |
+| P06 | Bovine Ephemeral Fever (Demam 3 Hari) |
 
 ## Persyaratan Sistem
 
@@ -99,8 +94,7 @@ python manage.py migrate
 ### 7. Seed data awal
 
 ```sh
-python manage.py seed_data           # 5 penyakit + 17 gejala + aturan CF
-python manage.py add_new_diseases    # +6 penyakit + 18 gejala + aturan CF
+python manage.py seed_data           # 6 penyakit + 35 gejala + aturan CF
 python manage.py seed_solusi         # solusi penanganan komprehensif
 ```
 
